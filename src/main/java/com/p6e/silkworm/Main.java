@@ -17,6 +17,8 @@ public class Main {
         // ...
 
         // 启动程序
+        P6eSilkwormApplication.setNetworkPool(10);
+        P6eSilkwormApplication.setNetworkInterval(2000);
         P6eSilkwormApplication.run();
 
         // 添加事件处理器
@@ -55,6 +57,8 @@ public class Main {
         // 添加爬虫任务
         P6eHttpMulberry a = P6eHttpMulberry.Builder.create("http://www.baidu.com", "3").setGetMethod().build();
         P6eSilkwormApplication.addHttpMulberry(a);
+        P6eHttpMulberry b = P6eHttpMulberry.Builder.create("http://www.baidu.com", "3").setGetMethod().build();
+        P6eSilkwormApplication.addHttpMulberry(b);
 
         try {
             Thread.sleep(3000);
@@ -63,6 +67,10 @@ public class Main {
         }
 
         for (String log : a.getLogs()) {
+            System.out.println(log);
+        }
+
+        for (String log : b.getLogs()) {
             System.out.println(log);
         }
 

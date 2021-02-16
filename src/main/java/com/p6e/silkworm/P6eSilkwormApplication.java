@@ -118,6 +118,17 @@ public final class P6eSilkwormApplication {
     }
 
     /**
+     * 设置网络的间隔时间
+     * @param interval 间隔的时间
+     */
+    public static void setNetworkInterval(long interval) {
+        if (isNotRun()) {
+            P6eNetworkQueue.setInterval(interval);
+        }
+    }
+
+
+    /**
      * 设置网络的 HTTP 处理者对象
      * @param performer HTTP 处理者对象
      */

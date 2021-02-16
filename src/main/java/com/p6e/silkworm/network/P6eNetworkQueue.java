@@ -30,6 +30,11 @@ public final class P6eNetworkQueue {
     private static P6eNetworkWebSocketPerformer NETWORK_WEB_SOCKET_PERFORMER;
 
     /**
+     * 任务之间的间隔
+     */
+    private static long INTERVAL = 1000;
+
+    /**
      * 初始化的操作
      */
     public static void init() {
@@ -79,6 +84,10 @@ public final class P6eNetworkQueue {
         THREAD_POOL = executorService;
     }
 
+    public static void setInterval(long interval) {
+        INTERVAL = interval;
+    }
+
     /**
      * HTTP 执行者替换的方法
      * @param networkHttpPerformer HTTP 执行者
@@ -122,6 +131,8 @@ public final class P6eNetworkQueue {
                             }
                         }
 
+                        // 间隔的时间
+                        Thread.sleep(INTERVAL);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

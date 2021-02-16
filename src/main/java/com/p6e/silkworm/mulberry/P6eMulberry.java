@@ -181,7 +181,7 @@ public class P6eMulberry implements Serializable {
     public void addLog(String log) {
         final String tName = Thread.currentThread().getName();
         final String dateTime = DATE_TIME_FORMATTER.format(LocalDateTime.now());
-        logs.add(tName + "/" + dateTime + "  " + log);
+        logs.add(id + "  " + tName + "/" + dateTime + "  " + log);
     }
 
     public void setAttribute(String key, Object value) {
