@@ -1,10 +1,9 @@
 package com.p6e.silkworm.mulberry;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 /**
  * 网络队列消息对象
@@ -15,6 +14,7 @@ public class P6eMulberry implements Serializable {
 
     public final static String ERROR = "ERROR";
     public final static String SUCCESS = "SUCCESS";
+    private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
     /**
      * 生命周期的回调函数
@@ -42,6 +42,11 @@ public class P6eMulberry implements Serializable {
          */
         public boolean execute(P6eMulberry mulberry) throws Exception;
     }
+
+    /**
+     * ID
+     */
+    private final String id;
 
     /**
      * 消息来源类型
@@ -103,8 +108,14 @@ public class P6eMulberry implements Serializable {
 
 
     public P6eMulberry(String sourceType, String performerType) {
+        this.id = UUID.randomUUID().toString().replaceAll("-", "");
         this.sourceType = sourceType;
         this.performerType = performerType;
+        this.addLog("[ CREATE ] ==> SOURCE TYPE: " + sourceType + ", PERFORMER TYPE: " + performerType);
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getSourceType() {
@@ -168,7 +179,9 @@ public class P6eMulberry implements Serializable {
     }
 
     public void addLog(String log) {
-        logs.add(log);
+        final String tName = Thread.currentThread().getName();
+        final String dateTime = DATE_TIME_FORMATTER.format(LocalDateTime.now());
+        logs.add(tName + "/" + dateTime + "  " + log);
     }
 
     public void setAttribute(String key, Object value) {

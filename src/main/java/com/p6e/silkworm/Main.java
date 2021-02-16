@@ -40,7 +40,7 @@ public class Main {
             @Override
             public void dispose(String text, P6eMulberry message) {
                 System.out.println(text);
-                addHttpMulberry(P6eHttpMulberry.Builder.create("http://www.baidu.com", "1").setGetMethod().build());
+                // addHttpMulberry(P6eHttpMulberry.Builder.create("http://www.baidu.com", "1").setGetMethod().build());
             }
         });
 
@@ -53,7 +53,20 @@ public class Main {
         });
 
         // 添加爬虫任务
-        P6eSilkwormApplication.addHttpMulberry(P6eHttpMulberry.Builder.create("http://www.baidu.com", "text").setGetMethod().build());
+        P6eHttpMulberry a = P6eHttpMulberry.Builder.create("http://www.baidu.com", "3").setGetMethod().build();
+        P6eSilkwormApplication.addHttpMulberry(a);
+
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        for (String log : a.getLogs()) {
+            System.out.println(log);
+        }
+
+        P6eSilkwormApplication.graceClose();
     }
 
 }

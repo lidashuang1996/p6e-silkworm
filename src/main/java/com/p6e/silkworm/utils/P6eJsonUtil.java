@@ -2,35 +2,27 @@ package com.p6e.silkworm.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-
-import java.lang.reflect.Type;
-import java.util.Map;
 
 /**
+ * JSON 序列化/反序列化 实现
  * @author lidashuang
  * @version 1.0
  */
-public final class P6eJsonUtil {
+public final class P6eJsonUtil implements P6eJsonInterface {
+
+    /**
+     * 创建 G S O N 对象
+     */
     private static final Gson GSON = (new GsonBuilder()).disableHtmlEscaping().create();
 
-    public P6eJsonUtil() {
-    }
-
+    @Override
     public String toJson(Object o) {
         return o == null ? null : GSON.toJson(o);
     }
 
+    @Override
     public <T> T fromJson(String json, Class<T> tClass) {
         return GSON.fromJson(json, tClass);
     }
 
-    public <T> T fromJson(String json, Type typeOfT) {
-        return GSON.fromJson(json, typeOfT);
-    }
-
-    public <T, W> Map<T, W> fromJsonToMap(String json, Class<T> keyClass, Class<W> valueClass) {
-        return (Map)GSON.fromJson(json, (new TypeToken<Map<T, W>>() {
-        }).getType());
-    }
 }

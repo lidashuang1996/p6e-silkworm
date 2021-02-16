@@ -182,6 +182,11 @@ public class P6eHttpMulberry extends P6eMulberry implements Serializable {
             return this;
         }
 
+        public Builder setMaxRetry(int maxRetry) {
+            mulberry.setMaxRetry(maxRetry);
+            return this;
+        }
+
         public Builder addHeader(String key, String value) {
             mulberry.addHeader(key, value);
             return this;

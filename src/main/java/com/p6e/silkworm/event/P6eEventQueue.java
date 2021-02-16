@@ -5,7 +5,7 @@ import com.p6e.silkworm.mulberry.P6eMulberry;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * 网络队列
+ * 事件队列
  * @author lidashuang
  * @version 1.0
  */
@@ -14,7 +14,7 @@ public final class P6eEventQueue {
     /**
      * 最大的队列长度
      */
-    private static int MAX_QUEUE_SIZE = 1024;
+    private static int MAX_QUEUE_SIZE = 2048;
 
     /**
      * 网络队列消息

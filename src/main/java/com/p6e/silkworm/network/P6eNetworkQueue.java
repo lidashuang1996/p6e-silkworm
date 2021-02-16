@@ -3,9 +3,9 @@ package com.p6e.silkworm.network;
 import com.p6e.silkworm.mulberry.P6eHttpMulberry;
 import com.p6e.silkworm.mulberry.P6eMulberry;
 import com.p6e.silkworm.mulberry.P6eWebSocketMulberry;
+import com.p6e.silkworm.utils.P6eThreadUtil;
 
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 网络队列
@@ -17,7 +17,7 @@ public final class P6eNetworkQueue {
     /**
      * 默认创建的线程池
      */
-    private static ExecutorService THREAD_POOL;
+    private static ThreadPoolExecutor THREAD_POOL;
 
     /**
      * HTTP 执行者
@@ -34,16 +34,19 @@ public final class P6eNetworkQueue {
      */
     public static void init() {
         init(new ThreadPoolExecutor(10, 10, 0L,
-                TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), new NamedThreadFactory()));
+                TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), new P6eThreadUtil.NamedThreadFactory("P6E-NETWORK")));
     }
 
     /**
      * 初始化的操作
-     * @param tp 线程池
+     * @param executor 线程池
      */
-    public static void init(ExecutorService tp) {
-        THREAD_POOL = tp;
-
+    public static void init(ThreadPoolExecutor executor) {
+        if (THREAD_POOL == null) {
+            THREAD_POOL = executor;
+        } else {
+            executor.shutdown();
+        }
         if (NETWORK_HTTP_PERFORMER == null) {
             NETWORK_HTTP_PERFORMER = new P6eNetworkHttpPerformer();
         }
@@ -51,6 +54,29 @@ public final class P6eNetworkQueue {
         if (NETWORK_WEB_SOCKET_PERFORMER == null) {
             NETWORK_WEB_SOCKET_PERFORMER = new P6eNetworkWebSocketPerformer();
         }
+    }
+
+    /**
+     * 设置网路线程池的大小
+     * @param poolSize 线程池的大小
+     */
+    public static void setNetworkPool(int poolSize) {
+        if (THREAD_POOL != null) {
+            THREAD_POOL.shutdown();
+        }
+        THREAD_POOL = new ThreadPoolExecutor(poolSize, poolSize, 0L,
+                TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), new P6eThreadUtil.NamedThreadFactory("P6E-NETWORK"));
+    }
+
+    /**
+     * 设置网路线程池
+     * @param executorService 线程池
+     */
+    public static void setNetworkPool(ThreadPoolExecutor executorService) {
+        if (THREAD_POOL != null) {
+            THREAD_POOL.shutdown();
+        }
+        THREAD_POOL = executorService;
     }
 
     /**
@@ -83,6 +109,7 @@ public final class P6eNetworkQueue {
                         if (mulberry instanceof P6eHttpMulberry
                                 && P6eHttpMulberry.TYPE.equals(mulberry.getSourceType())) {
                             if (NETWORK_HTTP_PERFORMER != null) {
+                                mulberry.addLog("[ DISTRIBUTE HTTP NETWORK ]");
                                 NETWORK_HTTP_PERFORMER.execute((P6eHttpMulberry) mulberry);
                             }
                         }
@@ -103,31 +130,22 @@ public final class P6eNetworkQueue {
         }
     }
 
+    public static ThreadPoolExecutor getThreadPool() {
+        return THREAD_POOL;
+    }
+
     /**
-     * 设置线程的名称
+     * 摧毁
      */
-    private static class NamedThreadFactory implements ThreadFactory{
+    public static void destroy() {
+        THREAD_POOL.shutdownNow();
+    }
 
-        private static final String NAME_PREFIX = "P6E-NETWORK-";
-
-        private final ThreadGroup group;
-        private final AtomicInteger threadNumber = new AtomicInteger(1);
-
-        public NamedThreadFactory() {
-            final SecurityManager s = System.getSecurityManager();
-            group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
-        }
-
-        @Override
-        public Thread newThread(Runnable r) {
-            final Thread t = new Thread(group, r, NAME_PREFIX + "[" + threadNumber.getAndIncrement() + "]", 0);
-            if (t.isDaemon()) {
-                t.setDaemon(false);
-            }
-            if (t.getPriority() != Thread.NORM_PRIORITY) {
-                t.setPriority(Thread.NORM_PRIORITY);
-            }
-            return t;
-        }
+    /**
+     * 关闭
+     * @param callback 关闭之后的回调函数
+     */
+    public static void close(P6eThreadUtil.ThreadPoolShutdownCallback callback) {
+        P6eThreadUtil.threadPoolShutdown(THREAD_POOL, callback);
     }
 }

@@ -12,14 +12,23 @@ import org.slf4j.LoggerFactory;
  */
 public class P6eEventPerformerJsoup implements P6eEventPerformerInterface {
 
+    /**
+     * 类型
+     */
     public static final String TYPE = "HTML_TYPE";
+
+    /**
+     * 日志对象
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(P6eEventPerformerJsoup.class);
 
     @Override
     public void execute(P6eMulberry mulberry) {
         if (mulberry != null && P6eMulberry.SUCCESS.equals(mulberry.getResultType())) {
             final String result = mulberry.getResultContent();
+            mulberry.addLog("[ EVENT RUN PERFORMER JSOUP START ]");
             this.dispose(Jsoup.parse(result), mulberry);
+            mulberry.addLog("[ EVENT RUN PERFORMER JSOUP END ]");
         }
     }
 

@@ -33,17 +33,46 @@ import java.util.Map;
  */
 public final class P6eHttpUtil implements P6eHttpInterface {
 
+    /**
+     * HTTPS
+     */
     private static final String HTTPS = "https";
+
+    /**
+     * HTTP 客户端
+     */
     private static HttpClient HTTP_CLIENT = null;
+
+    /**
+     * HTTPS 客户度
+     */
     private static HttpClient HTTPS_CLIENT = null;
 
+    /**
+     * CONTENT_TYPE
+     */
     public static final String CONTENT_TYPE = "Content-Type";
+
+    /**
+     * APPLICATION_JSON
+     */
     public static final String APPLICATION_JSON = "application/json";
+
+    /**
+     * APPLICATION_X_WWW_FORM_URLENCODED
+     */
     public static final String APPLICATION_X_WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
+
+    private String globalProxyHost;
+    private String globalProxyPort;
+    private Map<String, String> globalHeaders;
 
     /**
      * URL 参数格式化
-     * @return 格式化后的 URL
+     * @param url url 参数
+     * @param params 请求参数
+     * @return 格式化后的结果
+     * @throws IOException 格式化中产生的 IO 异常
      */
     public static String urlParamFormat(String url, Map<String, String> params) throws IOException {
         return urlParamFormat(url, params, true);
@@ -51,7 +80,11 @@ public final class P6eHttpUtil implements P6eHttpInterface {
 
     /**
      * URL 参数格式化
-     * @return 格式化后的 URL
+     * @param url url 参数
+     * @param params 请求参数
+     * @param isAddUrl 是否添加 url
+     * @return 格式化后的结果
+     * @throws IOException 格式化中产生的 IO 异常
      */
     public static String urlParamFormat(String url, Map<String, String> params, boolean isAddUrl) throws IOException {
         if (params != null) {
@@ -73,6 +106,13 @@ public final class P6eHttpUtil implements P6eHttpInterface {
         return isAddUrl ? url : "";
     }
 
+    /**
+     * APPLICATION_JSON 参数格式化
+     * @param params 请求参数
+     * @param headers 头部参数
+     * @return 格式化后的结果
+     * @throws IOException 格式化中产生的 IO 异常
+     */
     public static StringEntity applicationJsonParamFormat(String params, Map<String, String> headers) throws IOException {
         if (headers == null) {
             headers = new HashMap<>(1);
@@ -86,7 +126,13 @@ public final class P6eHttpUtil implements P6eHttpInterface {
         return null;
     }
 
-
+    /**
+     * APPLICATION_X_WWW_FORM_URLENCODED 参数格式化
+     * @param params 请求参数
+     * @param headers 头部参数
+     * @return 格式化后的结果
+     * @throws IOException 格式化中产生的 IO 异常
+     */
     public static StringEntity applicationXWwwFormUrlencodedParamFormat(Map<String, String> params, Map<String, String> headers) throws IOException {
         if (headers == null) {
             headers = new HashMap<>(1);
@@ -102,62 +148,73 @@ public final class P6eHttpUtil implements P6eHttpInterface {
     }
 
     @Override
-    public String doGet(String url, Map<String, String> params, Map<String, String> headers) throws IOException {
-        return http(new HttpGet(urlParamFormat(url, params)), headers);
+    public void setGlobalProxy(String proxyHost, String proxyPort) {
+        this.globalProxyHost = proxyHost;
+        this.globalProxyPort = proxyPort;
     }
 
     @Override
-    public String doDelete(String url, Map<String, String> params, Map<String, String> headers) throws IOException {
-        return http(new HttpDelete(urlParamFormat(url, params)), headers);
+    public void setGlobalHeaders(Map<String, String> headers) {
+        this.globalHeaders = headers;
     }
 
     @Override
-    public String doPut(String url, String params, Map<String, String> headers) throws IOException {
+    public String doGet(String url, Map<String, String> params, Map<String, String> headers, String proxyHost, String proxyPort) throws IOException {
+        return httpString(new HttpGet(urlParamFormat(url, params)), headers, proxyHost, proxyPort);
+    }
+
+    @Override
+    public String doDelete(String url, Map<String, String> params, Map<String, String> headers, String proxyHost, String proxyPort) throws IOException {
+        return httpString(new HttpDelete(urlParamFormat(url, params)), headers, proxyHost, proxyPort);
+    }
+
+    @Override
+    public String doPut(String url, String params, Map<String, String> headers, String proxyHost, String proxyPort) throws IOException {
         final HttpPut httpPut = new HttpPut(url);
         final StringEntity stringEntity = applicationJsonParamFormat(params, headers);
         if (stringEntity != null) {
             httpPut.setEntity(stringEntity);
         }
-        return http(httpPut, headers);
+        return httpString(httpPut, headers, proxyHost, proxyPort);
     }
 
     @Override
-    public String doPost(String url, String params, Map<String, String> headers) throws IOException {
+    public String doPost(String url, String params, Map<String, String> headers, String proxyHost, String proxyPort) throws IOException {
         final HttpPost httpPost = new HttpPost(url);
         final StringEntity stringEntity = applicationJsonParamFormat(params, headers);
         if (stringEntity != null) {
             httpPost.setEntity(stringEntity);
         }
-        return http(httpPost, headers);
+        return httpString(httpPost, headers, proxyHost, proxyPort);
     }
 
     @Override
-    public String doPut(String url, Map<String, String> params, Map<String, String> headers) throws IOException {
+    public String doPut(String url, Map<String, String> params, Map<String, String> headers, String proxyHost, String proxyPort) throws IOException {
         final HttpPut httpPut = new HttpPut(url);
         final StringEntity stringEntity = applicationXWwwFormUrlencodedParamFormat(params, headers);
         if (stringEntity != null) {
             httpPut.setEntity(stringEntity);
         }
-        return http(httpPut, headers);
+        return httpString(httpPut, headers, proxyHost, proxyPort);
     }
 
     @Override
-    public String doPost(String url, Map<String, String> params, Map<String, String> headers) throws IOException {
+    public String doPost(String url, Map<String, String> params, Map<String, String> headers, String proxyHost, String proxyPort) throws IOException {
         final HttpPost httpPost = new HttpPost(url);
         final StringEntity stringEntity = applicationXWwwFormUrlencodedParamFormat(params, headers);
         if (stringEntity != null) {
             httpPost.setEntity(stringEntity);
         }
-        return http(httpPost, headers);
+        return httpString(httpPost, headers, proxyHost, proxyPort);
     }
 
     @Override
-    public String doPut(String url, HttpEntity params, Map<String, String> headers) throws IOException {
+    public String doPut(String url, HttpEntity params, Map<String, String> headers, String proxyHost, String proxyPort) throws IOException {
         final HttpPut httpPut = new HttpPut(url);
         if (params != null) {
             httpPut.setEntity(params);
         }
-        return http(httpPut, headers);
+        return httpString(httpPut, headers, proxyHost, proxyPort);
     }
 
     /**
@@ -170,18 +227,16 @@ public final class P6eHttpUtil implements P6eHttpInterface {
      *
      */
     @Override
-    public String doPost(String url, HttpEntity params, Map<String, String> headers) throws IOException {
+    public String doPost(String url, HttpEntity params, Map<String, String> headers, String proxyHost, String proxyPort) throws IOException {
         final HttpPost httpPost = new HttpPost(url);
         if (params != null) {
             httpPost.setEntity(params);
         }
-        return http(httpPost, headers);
+        return httpString(httpPost, headers, proxyHost, proxyPort);
     }
 
-    /**
-     * HTTP // HTTPS
-     */
-    private static String http(HttpUriRequest httpUriRequest, Map<String, String> headers) throws IOException {
+
+    public HttpResponse http(HttpUriRequest httpUriRequest, Map<String, String> headers, String proxyHost, String proxyPort) throws IOException {
         final String scheme = httpUriRequest.getURI().getScheme();
         HttpClient client;
         // 判断是否存在 HTTP 客户端对象
@@ -199,19 +254,38 @@ public final class P6eHttpUtil implements P6eHttpInterface {
             client = HTTPS_CLIENT;
         }
 
-        // 设置代理IP、端口、协议（请分别替换）
-        // final HttpHost proxy = new HttpHost("127.0.0.1", 10887, "http");
+        if (globalProxyHost != null && globalProxyPort != null) {
+            if (proxyHost != null && proxyPort != null) {
+                if ("".equals(proxyHost) && "".equals(proxyPort)) {
 
-        // 设置代理
-        // client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+                } else {
+                    final HttpHost proxy = new HttpHost(proxyHost, Integer.parseInt(proxyPort), scheme);
+                    client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+                }
+            } else {
+                final HttpHost proxy = new HttpHost(globalProxyHost, Integer.parseInt(globalProxyPort), scheme);
+                client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+            }
+
+        }
+
+        if (globalHeaders != null) {
+            for (String name : globalHeaders.keySet()) {
+                httpUriRequest.setHeader(name, globalHeaders.get(name));
+            }
+        }
 
         if (headers != null) {
             for (String name : headers.keySet()) {
                 httpUriRequest.setHeader(name, headers.get(name));
             }
         }
-        HttpResponse httpResponse = client.execute(httpUriRequest);
-        HttpEntity httpEntity = httpResponse.getEntity();
+        return client.execute(httpUriRequest);
+    }
+
+
+    public String httpString(HttpUriRequest httpUriRequest, Map<String, String> headers, String proxyHost, String proxyPort) throws IOException {
+        HttpEntity httpEntity = http(httpUriRequest, headers, proxyHost, proxyPort).getEntity();
         return EntityUtils.toString(httpEntity, "UTF-8");
     }
 
